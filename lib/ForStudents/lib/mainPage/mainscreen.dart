@@ -1,5 +1,10 @@
+// ignore_for_file: library_private_types_in_public_api, prefer_typing_uninitialized_variables, avoid_print, use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({Key? key}) : super(key: key);
@@ -9,12 +14,59 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
+  Map<String, dynamic> userData = {};
+  bool isLoading = true;
+  String studentId = '';
+
+  @override
+  void initState() {
+    super.initState();
+    fetchUserData();
+  }
+
+  Future<void> fetchUserData() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final userEmail = prefs.getString('userEmail');
+
+      if (userEmail == null) {
+        setState(() {
+          isLoading = false;
+        });
+        return;
+      }
+
+      final apiUrl = Uri.parse(
+          'http://10.0.2.2/eclearanceAPI/get_student_info.php?email=$userEmail');
+      final response = await http.get(apiUrl);
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          userData = data;
+          isLoading = false;
+          studentId = userData['StudentID']; // Store the student ID
+          prefs.setString('studentId', studentId);
+          print(studentId);
+        });
+      } else {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xff2a54d5),
+      backgroundColor: const Color.fromARGB(255, 29, 62, 162),
       appBar: AppBar(
-        backgroundColor: const Color(0xff2a54d5),
+        backgroundColor: const Color.fromARGB(255, 29, 62, 162),
         toolbarHeight: 65,
         automaticallyImplyLeading: false,
         title: Text(
@@ -26,15 +78,17 @@ class _MainScreenState extends State<MainScreen> {
           ),
         ),
       ),
-      body: DepartmentStatusList(),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : DepartmentStatusList(userData: userData),
     );
   }
 }
 
 class DepartmentStatusList extends StatelessWidget {
-  // Add more department statuses here
+  final Map<String, dynamic> userData;
 
-  DepartmentStatusList({Key? key});
+  DepartmentStatusList({Key? key, required this.userData}) : super(key: key);
 
   final List<DepartmentStatus> departmentStatusList = [
     DepartmentStatus(
@@ -129,7 +183,10 @@ class DepartmentStatusList extends StatelessWidget {
       itemCount: departmentStatusList.length,
       itemBuilder: (context, index) {
         final departmentStatus = departmentStatusList[index];
-        return DepartmentStatusTile(departmentStatus: departmentStatus);
+        return DepartmentStatusTile(
+          departmentStatus: departmentStatus,
+          userData: userData,
+        );
       },
     );
   }
@@ -149,14 +206,17 @@ class IndividualStatus {
   IndividualStatus({required this.name});
 
   final String name;
-  var status;
 }
 
 class DepartmentStatusTile extends StatefulWidget {
-  DepartmentStatusTile({Key? key, required this.departmentStatus})
-      : super(key: key);
+  const DepartmentStatusTile({
+    Key? key,
+    required this.departmentStatus,
+    required this.userData,
+  }) : super(key: key);
 
   final DepartmentStatus departmentStatus;
+  final Map<String, dynamic> userData;
 
   @override
   _DepartmentStatusTileState createState() => _DepartmentStatusTileState();
@@ -164,6 +224,22 @@ class DepartmentStatusTile extends StatefulWidget {
 
 class _DepartmentStatusTileState extends State<DepartmentStatusTile> {
   bool isExpanded = false;
+  bool isRequested = false;
+  @override
+  void initState() {
+    super.initState();
+    checkIsRequested(); // Check the request status when the widget is initialized
+  }
+
+  Future<void> checkIsRequested() async {
+    final prefs = await SharedPreferences.getInstance();
+    final key = 'requestStatus_${widget.departmentStatus.department}';
+    final requested = prefs.getBool(key) ?? false;
+
+    setState(() {
+      isRequested = requested;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -212,7 +288,8 @@ class _DepartmentStatusTileState extends State<DepartmentStatusTile> {
                               ),
                               onPressed: () {
                                 showDialog(
-                                  context: context,
+                                  context:
+                                      context, // This is the correct way to access the context
                                   builder: (context) {
                                     return AlertDialog(
                                       title: const Text('Confirmation'),
@@ -221,15 +298,16 @@ class _DepartmentStatusTileState extends State<DepartmentStatusTile> {
                                       actions: <Widget>[
                                         TextButton(
                                           onPressed: () {
-                                            // Close the dialog
                                             Navigator.of(context).pop();
                                           },
                                           child: const Text('Cancel'),
                                         ),
                                         TextButton(
                                           onPressed: () {
-                                            // Handle the request action here
-                                            // Close the dialog
+                                            makeRequest(
+                                              individualStatus.name,
+                                              widget.userData,
+                                            );
                                             Navigator.of(context).pop();
                                           },
                                           child: const Text('Confirm'),
@@ -250,5 +328,79 @@ class _DepartmentStatusTileState extends State<DepartmentStatusTile> {
         ],
       ),
     );
+  }
+
+  void saveRequestStatusToSharedPreferences(
+      String individualStatusName, bool requested) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final key = 'requestStatus_$individualStatusName';
+
+      // Save the request status to shared preferences
+      prefs.setBool(key, requested);
+    } catch (e) {
+      // Handle error if necessary
+    }
+  }
+
+  Future<void> saveRequestStatus(bool requested) async {
+    final prefs = await SharedPreferences.getInstance();
+    final key = 'requestStatus_${widget.departmentStatus.department}';
+    prefs.setBool(key, requested);
+
+    setState(() {
+      isRequested = requested;
+    });
+  }
+
+  void makeRequest(
+      String individualStatusName, Map<String, dynamic> userData) async {
+    final apiUrl = Uri.parse('http://10.0.2.2/eclearanceAPI/request.php');
+
+    // Create a Map for the request body
+    Map<String, dynamic> requestBody = {
+      'individualStatusName': individualStatusName,
+      'userData': userData,
+    };
+
+    // Convert the request body to a JSON string
+    String requestBodyJson = json.encode(requestBody);
+
+    final response = await http.post(
+      apiUrl,
+      headers: {
+        'Content-Type': 'application/json',
+      }, // Set the content type to JSON
+      body: requestBodyJson,
+    );
+
+    if (response.statusCode == 200) {
+      // Change the button label to "Requested"
+      setState(() {
+        isRequested = true;
+      });
+
+      saveRequestStatusToSharedPreferences(individualStatusName, true);
+
+      print("Request sent successfully");
+    } else {
+      // Display an error message
+      showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: const Text('Request Error'),
+              content: const Text('Request already Made'),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
+            );
+          });
+    }
   }
 }

@@ -1,20 +1,23 @@
 // ignore_for_file: file_names
 
+import 'package:eclearance/ForLecturers/BottomNav/DueStatusScreen.dart';
 import 'package:eclearance/ForLecturers/BottomNav/lib/mainPage/mainscreen.dart';
-import 'package:eclearance/ForStudents/Menu/menu.dart';
+import 'package:eclearance/ForLecturers/BottomNav/Menu/menu.dart';
 import 'package:eclearance/ForStudents/MessagesInfo.dart';
 //import 'package:eclearance/BottomNav/MessagesScreen.dart';
-import 'package:eclearance/ForStudents/StatusScreen.dart';
 import 'package:flutter/material.dart';
 
 
 
 class DisplayScreenLec extends StatefulWidget {
   
-  const DisplayScreenLec({Key? key}) : super(key: key);
+   final Map<String, dynamic>? userData;
+
+  const DisplayScreenLec({super.key, required this.userData});
 
 
   @override
+  // ignore: library_private_types_in_public_api
   _DisplayScreenState createState() => _DisplayScreenState();
 }
 
@@ -30,9 +33,9 @@ class _DisplayScreenState extends State<DisplayScreenLec> {
   }
 
   final List<Widget> _pages = [
-    MessagesInfo(),
+    const MessagesInfo(),
     const MainScreenLec(),
-    const StatusScreen(),
+    const DueStatusScreen(),
   ];
 
   final ThemeData _lightTheme = ThemeData.light();
@@ -71,7 +74,7 @@ class _DisplayScreenState extends State<DisplayScreenLec> {
             ),
           ],
         ),
-        backgroundColor: const Color(0xff2a54d5),
+        backgroundColor: const Color.fromARGB(255, 29, 62, 162),
         body: PageView(
           controller: _pageController,
           children: _pages,
@@ -148,7 +151,7 @@ class _DisplayScreenState extends State<DisplayScreenLec> {
           ],
           backgroundColor: const Color(0xFFB0B3BF),
           unselectedItemColor: const Color.fromARGB(255, 0, 0, 0),
-          selectedItemColor: const Color(0xff2a54d5),
+          selectedItemColor: const Color.fromARGB(255, 29, 62, 162),
         ),
       ),
     );

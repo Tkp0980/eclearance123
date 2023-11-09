@@ -1,3 +1,5 @@
+// ignore_for_file: camel_case_types
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -19,7 +21,7 @@ class aboutus extends StatelessWidget {
         backgroundColor: const Color(0xFFB0B3BF),
       ),
       body: Container(
-        color: const Color(0xff2a54d5),
+        color:  const Color.fromARGB(255, 29, 62, 162),
         child: ListView(
           children: <Widget>[
             Stack(
@@ -56,7 +58,7 @@ class aboutus extends StatelessWidget {
               ),
             ),
             const AboutUsInfo(label: 'Founded', value: '2023'),
-            const AboutUsInfo(label: 'Location', value: 'College Campus, USA'),
+            const AboutUsInfo(label: 'Location', value: 'College Campus, CST'),
             const AboutUsInfo(label: 'Team Size', value: '4'),
             const AboutUsInfo(label: 'Mission', value: 'To learn and innovate together'),
             const AboutUsInfo(label: 'Values', value: 'Collaboration, Creativity, Fun'),

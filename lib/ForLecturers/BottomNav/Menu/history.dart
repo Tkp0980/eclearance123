@@ -1,39 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-
-class HistoryForm {
-  final String formTitle;
-  final String formContent;
-
-  HistoryForm({
-    required this.formTitle,
-    required this.formContent,
-  });
-}
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class HistoryPage extends StatelessWidget {
-  const HistoryPage({Key? key});
+  const HistoryPage({super.key, Key? key1});
 
   @override
   Widget build(BuildContext context) {
-    // Replace 'historyForms' with your actual list of history forms
-    final List<HistoryForm> historyForms = [
-      HistoryForm(
-        formTitle: "Form 1",
-        formContent: "This is the content of Form 1.",
-      ),
-      HistoryForm(
-        formTitle: "Form 2",
-        formContent: "This is the content of Form 2.",
-      ),
-      // Add more forms as needed
-    ];
-
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           'History',
-          style: GoogleFonts.inter(
+          style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
           ),
@@ -42,69 +20,70 @@ class HistoryPage extends StatelessWidget {
         backgroundColor: const Color(0xFFB0B3BF),
       ),
       backgroundColor: const Color(0xff2a54d5),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: ListView.separated(
-          itemCount: historyForms.length,
-          separatorBuilder: (context, index) => const SizedBox(height: 20),
-          itemBuilder: (context, index) {
-            return CustomContainer(
-              backgroundColor: Colors.white,
-              child: ListTile(
-            
-                title: Text(
-                  historyForms[index].formTitle,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-                subtitle: Text(
-                  historyForms[index].formContent,
-                  style: const TextStyle(
-                    color: Colors.black,
-                  ),
-                ),
-                trailing: ElevatedButton(
-                  onPressed: () {
-                    // Implement the action for the button
-                    _buttonAction(historyForms[index]);
-                  },
-                  child: const Text('Generate'),
-                ),
-              ),
+      body: FutureBuilder(
+        future: fetchData(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else {
+            final data = snapshot.data;
+            return ListView.builder(
+              itemCount: data['requests'].length,
+              itemBuilder: (context, index) {
+                final request = data['requests'][index];
+                if (request['buttonClicked'] == "1") {
+                  return Card(
+                    margin: const EdgeInsets.all(10),
+                    child: ListTile(
+                      title: Text(
+                        '${request['requesterName']} - ${request['requesterDepartment']}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(
+                            'Status: ${request['status']}',
+                            style: const TextStyle(
+                             
+                              fontSize: 16,
+                              color: Colors.green, // Adjust the color as needed
+                            ),
+                          ),
+                          Text(
+                            'Std ID: ${request['requesterStdid']}',
+                            style: const TextStyle(
+                             
+                              fontSize: 16,
+                              color: Colors.green, // Adjust the color as needed
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                } else {
+                  return const SizedBox.shrink(); // Hide items with buttonClicked != 1
+                }
+              },
             );
-          },
-        ),
+          }
+        },
       ),
     );
   }
 
-
-  void _buttonAction(HistoryForm form) {
-    // Implement the action for the button
+  Future<dynamic> fetchData() async {
+    final response = await http.get(Uri.parse('http://10.0.2.2/eclearanceAPI/status.php'));
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Failed to load data');
+    }
   }
 }
-
-class CustomContainer extends StatelessWidget {
-  final Color backgroundColor;
-  final Widget child;
-
-  const CustomContainer({
-    Key? key,
-    required this.backgroundColor,
-    required this.child,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: child,
-    );
-  }
-}
-

@@ -1,4 +1,6 @@
-// ignore: file_names
+
+// ignore_for_file: file_names
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -12,7 +14,7 @@ class MessagesScreen extends StatelessWidget {
     return Scaffold(
       
       appBar: AppBar(
-        backgroundColor:  const  Color(0xff2a54d5),
+        backgroundColor:  const Color.fromARGB(255, 29, 62, 162),
         toolbarHeight: 65,
         
          title: Text(
@@ -24,7 +26,7 @@ class MessagesScreen extends StatelessWidget {
           ),
         ),
       ),
-      backgroundColor: const  Color(0xff2a54d5),
+      backgroundColor: const Color.fromARGB(255, 29, 62, 162),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

@@ -12,7 +12,7 @@ class HistoryForm {
 }
 
 class HistoryPage extends StatelessWidget {
-  const HistoryPage({Key? key});
+  const HistoryPage({super.key, Key? key1});
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +41,7 @@ class HistoryPage extends StatelessWidget {
         toolbarHeight: 65,
         backgroundColor: const Color(0xFFB0B3BF),
       ),
-      backgroundColor: const Color(0xff2a54d5),
+      backgroundColor: const Color.fromARGB(255, 29, 62, 162),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: ListView.separated(

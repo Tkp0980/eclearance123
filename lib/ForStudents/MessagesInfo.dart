@@ -1,33 +1,74 @@
-// ignore_for_file: file_names
+// ignore_for_file: library_private_types_in_public_api, file_names
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Message {
-  Message(this.sender, this.message, this.isUnread);
+  Message(this.sender, this.message);
 
-  final bool isUnread; // Add a flag for unread messages
   final String message;
   final String sender;
 }
 
-class MessagesInfo extends StatelessWidget {
-  MessagesInfo({Key? key}) : super(key: key);
+class MessagesInfo extends StatefulWidget {
+  const MessagesInfo({Key? key}) : super(key: key);
 
-  final List<Message> messages = [
-    Message('Sender 1', 'Message 1 content', true), // Mark this message as unread
-    Message('Sender 2', 'Message 2 content', false),
-    // Add more messages as needed
-  ];
+  @override
+  _MessagesInfoState createState() => _MessagesInfoState();
+}
+
+class _MessagesInfoState extends State<MessagesInfo> {
+  final List<Message> messages = [];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchData();
+  }
+
+  Future<void> fetchData() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String studentId = prefs.getString('studentId') ?? '';
+
+    final response =
+        await http.get(Uri.parse('http://10.0.2.2/eclearanceAPI/status.php'));
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      if (data.containsKey('requests')) {
+        final allRequests = List<Map<String, dynamic>>.from(data['requests']);
+        final matchingRequests = allRequests
+            .where((request) => request['requesterStdid'] == studentId)
+            .toList();
+
+        for (final request in matchingRequests) {
+          final status = request['status'];
+
+          // Check if status is not "pending" before adding to messages
+          if (status != "pending") {
+            final roleName = request['roleName'];
+            final title = roleName;
+            final body = 'Your request has been $status';
+            messages.add(Message(title, body));
+          }
+        }
+
+        setState(() {});
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xff2a54d5),
+        backgroundColor:  const Color.fromARGB(255, 29, 62, 162),
         toolbarHeight: 65,
         title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween, // Align items to the start and end
+          mainAxisAlignment: MainAxisAlignment.spaceBetween, 
           children: [
             Text(
               'Notifications:',
@@ -37,11 +78,10 @@ class MessagesInfo extends StatelessWidget {
                 color: Colors.white,
               ),
             ),
-          
           ],
         ),
       ),
-      backgroundColor: const Color(0xff2a54d5),
+      backgroundColor:  const Color.fromARGB(255, 29, 62, 162),
       body: ListView.builder(
         itemCount: messages.length,
         itemBuilder: (context, index) {
@@ -58,13 +98,14 @@ class MessagesInfo extends StatelessWidget {
                     return AlertDialog(
                       title: Text(
                         messages[index].sender,
-                        style: const TextStyle(fontWeight: FontWeight.bold), // Bold sender name
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold), 
                       ),
                       content: Text(messages[index].message),
                       actions: <Widget>[
                         TextButton(
                           onPressed: () {
-                            Navigator.of(context).pop(); // Close the dialog
+                            Navigator.of(context).pop(); 
                           },
                           child: const Text('Close'),
                         ),
@@ -74,7 +115,8 @@ class MessagesInfo extends StatelessWidget {
                 );
               },
               title: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween, // Align items to the start and end
+                mainAxisAlignment: MainAxisAlignment
+                    .spaceBetween, 
                 children: [
                   Text(
                     messages[index].sender,
@@ -82,16 +124,6 @@ class MessagesInfo extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  if (messages[index].isUnread)
-                    Container(
-                      width: 10,
-                      height: 10,
-                      margin: const EdgeInsets.only(left: 8), // Adjust margin to move the indicator to the right
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Color.fromARGB(255, 255, 68, 68), // Indicator color
-                      ),
-                    ),
                 ],
               ),
               subtitle: Text(messages[index].message),

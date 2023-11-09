@@ -24,7 +24,7 @@ class MessagesInfo extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xff2a54d5),
+        backgroundColor: const Color.fromARGB(255, 29, 62, 162),
         toolbarHeight: 65,
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween, // Align items to the start and end
@@ -41,7 +41,7 @@ class MessagesInfo extends StatelessWidget {
           ],
         ),
       ),
-      backgroundColor: const Color(0xff2a54d5),
+      backgroundColor: const Color.fromARGB(255, 29, 62, 162),
       body: ListView.builder(
         itemCount: messages.length,
         itemBuilder: (context, index) {

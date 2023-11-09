@@ -1,18 +1,11 @@
-// ignore_for_file: file_names
-
+import 'package:flutter/material.dart';
 import 'package:eclearance/ForStudents/Menu/menu.dart';
 import 'package:eclearance/ForStudents/MessagesInfo.dart';
-//import 'package:eclearance/BottomNav/MessagesScreen.dart';
 import 'package:eclearance/ForStudents/StatusScreen.dart';
 import 'package:eclearance/ForStudents/lib/mainPage/mainscreen.dart';
-import 'package:flutter/material.dart';
-
-
 
 class DisplayScreen extends StatefulWidget {
-  
   const DisplayScreen({Key? key}) : super(key: key);
-
 
   @override
   _DisplayScreenState createState() => _DisplayScreenState();
@@ -20,23 +13,21 @@ class DisplayScreen extends StatefulWidget {
 
 class _DisplayScreenState extends State<DisplayScreen> {
   int _currentIndex = 1;
+  final ThemeData _darkTheme = ThemeData.dark();
   bool _isDarkMode = false;
+  final ThemeData _lightTheme = ThemeData.light();
   late PageController _pageController;
+  final List<Widget> _pages = [
+    const MessagesInfo(),
+    const MainScreen(),
+    const StatusScreen(),
+  ];
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: _currentIndex);
   }
-
-  final List<Widget> _pages = [
-    MessagesInfo(),
-    const MainScreen(),
-    const StatusScreen(),
-  ];
-
-  final ThemeData _lightTheme = ThemeData.light();
-  final ThemeData _darkTheme = ThemeData.dark();
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +62,7 @@ class _DisplayScreenState extends State<DisplayScreen> {
             ),
           ],
         ),
-        backgroundColor: const Color(0xff2a54d5),
+        backgroundColor: const Color.fromARGB(255, 29, 62, 162),
         body: PageView(
           controller: _pageController,
           children: _pages,
@@ -95,51 +86,54 @@ class _DisplayScreenState extends State<DisplayScreen> {
           },
           items: <BottomNavigationBarItem>[
             BottomNavigationBarItem(
-              icon: Container(
-                decoration: const BoxDecoration(
-                  color: Colors.blue,
-                  shape: BoxShape.circle,
-                ),
-                child: const Padding(
-                  padding: EdgeInsets.all(8),
-                  child: Icon(
-                    Icons.mail,
-                    color: Colors.white,
-                    size: 24,
+              icon: ClipOval(
+                child: Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.blue,
+                  ),
+                  child: const Padding(
+                    padding: EdgeInsets.all(8),
+                    child: Icon(
+                      Icons.mail,
+                      color: Colors.white,
+                      size: 24,
+                    ),
                   ),
                 ),
               ),
               label: 'Notification',
             ),
             BottomNavigationBarItem(
-              icon: Container(
-                decoration: const BoxDecoration(
-                  color: Colors.blue,
-                  shape: BoxShape.circle,
-                ),
-                child: const Padding(
-                  padding: EdgeInsets.all(8),
-                  child: Icon(
-                    Icons.request_page,
-                    color: Colors.white,
-                    size: 24,
+              icon: ClipOval(
+                child: Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.blue,
+                  ),
+                  child: const Padding(
+                    padding: EdgeInsets.all(8),
+                    child: Icon(
+                      Icons.request_page,
+                      color: Colors.white,
+                      size: 24,
+                    ),
                   ),
                 ),
               ),
               label: 'Request',
             ),
             BottomNavigationBarItem(
-              icon: Container(
-                decoration: const BoxDecoration(
-                  color: Colors.blue,
-                  shape: BoxShape.circle,
-                ),
-                child: const Padding(
-                  padding: EdgeInsets.all(8),
-                  child: Icon(
-                    Icons.info,
-                    color: Colors.white,
-                    size: 24,
+              icon: ClipOval(
+                child: Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.blue,
+                  ),
+                  child: const Padding(
+                    padding: EdgeInsets.all(8),
+                    child: Icon(
+                      Icons.info,
+                      color: Colors.white,
+                      size: 24,
+                    ),
                   ),
                 ),
               ),
